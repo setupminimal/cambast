@@ -1,59 +1,50 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
+from django.template import loader, RequestContext
 from worth_schedule.models import *
-from datetime import datetime, timedelta
 from dateutil import parser
+from magic import sortTasks, inDollars
 
 # Create your views here.
-
-def inDollars(amount, currency):
-	return amount * currency.ratioToDollars
 
 def impossible(e):
 	"This weeds out any events past their due date, with too little time to complete, etc."
 	return True
 
-def urgencyThenWorth(event1, event2):
-	"""Sorts the two events based on these criteria:
-		If event1 is due before event2, and if event2 is worth more than event1
-		event1's time + event2's time is still before event2's deadline, then event1.
-		Otherwise, event2"""
-	if inDollars(event1.worth, event1.currency) > inDollars(event2.worth, event2.currency):
-		if event1.dueDate < event2.dueDate:
-			return 1
-		elif (datetime.now() + timedelta(hours=event2.timeCost+event1.timeCost) < event1.dueDate and 
-			datetime.now() + timedelta(hours=event1.timeCost) > event2.dueDate):
-			return -1
-	else:
-		if event2.dueDate < event1.dueDate:
-			return -1
-		elif (datetime.now() + timedelta(hours=event2.timeCost+event1.timeCost) < event2.dueDate and
-			datetime.now() + timedelta(hours=event2.timeCost) > event1.dueDate):
-			return 1
-
-def format(e):
-	return (e.name + " - worth: " + str(e.worth) + " " +
-		e.currency.name + "(" + 
-		str(inDollars(e.worth, e.currency)) + " dollars)" +
-		" - due: " + str(e.dueDate) + "<\br>")
-
-def ranking_page(url):
-	response = ""
+def ranking_page(request):
 	eventList = [x for x in Event.objects.all()]
 	filter(impossible, eventList)
-	eventList = sorted(eventList, cmp=urgencyThenWorth)
-	for e in eventList:
-		response += format(e)
-	return HttpResponse(response)
+	eventList = sortTasks(eventList)
+	template = loader.get_template('worth_schedule/index.html')
+	cur = [x.name for x in Currency.objects.all()]
+        context = RequestContext(request, { 'tasks': eventList,
+						'currencies': cur })
+	return HttpResponse(template.render(context))
 
-
-def add_currency_raw(url, name, worthInDollars):
-	p = Currency.objects.get_or_create(name=name, ratioToDollars=float(worthInDollars))[0]
+def add_currency_raw(request):
+	name = request.POST['name']
+	worth = request.POST['worth']
+	try:
+		currency = request.POST['currency']
+		c = Currency.objects.get(name=currency)
+	except:
+		c = Currency.objects.get_or_create(name="dollars", ratioToDollars=1)[0]
+		c.save()
+	p = Currency.objects.get_or_create(name=name, ratioToDollars=inDollars(float(worth), c))[0]
 	p.save()
-	return HttpResponse("Currency added!")
+	return HttpResponseRedirect("/")
 	
-def add_event_raw(url, name, due, time, worth, currency):
+def add_event_raw(request):
+	name = request.POST['name']
+	due = request.POST['due']
+	time = request.POST['time']
+	worth = request.POST['worth']
+	currency = request.POST['currency']
 	c = Currency.objects.get(name=currency)
 	p = Event.objects.get_or_create(name=name, dueDate=parser.parse(due), timeCost=float(time), worth=int(worth), currency=c)[0]
 	p.save()
-	return HttpResponse("Event added!")
+	return HttpResponseRedirect("/")
+
+def finish(url, id):
+	p = Event.objects.get(id=id).delete()
+	return HttpResponseRedirect("/")

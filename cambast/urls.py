@@ -9,7 +9,8 @@ urlpatterns = patterns('',
     # url(r'^blog/', include('blog.urls')),
 
     url(r'^$', v.ranking_page),
-    url(r'^add-raw-currency/(.*)/(.*)$', v.add_currency_raw),
-    url(r'^add-raw-event/(.*)/(.*)/(.*)/(.*)/(.*)$', v.add_event_raw),
+    url(r'^add-raw-currency$', v.add_currency_raw),
+    url(r'^add-raw-event$', v.add_event_raw),
+    url(r'^finish/(.*)$', v.finish),
     url(r'^admin/', include(admin.site.urls)),
 )

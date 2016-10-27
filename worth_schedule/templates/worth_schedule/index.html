@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Cambast</title>
+    <meta charset="UTF-8" />
+    <style>
+      li {line-height: 1.5em;}
+      ol, ul {margin-bottom: 2em;}
+      h1 {text-align: center;}
+    </style>
+  </head>
+  <body>
+    <h1>Cambast</h1>
+    {% if tasks %}
+      <ol>
+        {% for task in tasks %}
+           <li>
+               <ul>
+                   <li><a href="/finish/{{task.id}}">{{task.name}}</a></li>
+                   <li>Worth: {{task.worth}}</li>
+                   <li>Due: {{task.dueDate}}</li>
+                   <li>Time Cost: {{task.timeCost}} hours</li>
+               </ul>
+           </li>
+        {% endfor %}
+      </ol>
+    {% else %}
+      No tasks yet! Add some.
+    {% endif %}
+    
+    <h2>Add a Task</h2>
+    <form action="/add-raw-event" method="post">
+      {% csrf_token %}
+      Name: <input type="text" name="name" /><br />
+      Due:  <input type="datetime" name="due" /><br />
+      Time: <input type="text" name="time" /> hours<br />
+      Worth: <input type="text" name="worth">
+      <select name="currency">
+        {% for currency in currencies %}
+          <option value="{{currency}}">{{currency}}</option>
+        {% endfor %}
+      </select><br />
+      <input type="submit" value="Add Task" />
+    </form>
+    <h2>Add a Currency</h2>
+    <form action="/add-raw-currency" method="post">
+      {% csrf_token %}
+      Name: <input type="text" name="name" /><br />
+      Worth: <input type="text" name="worth">
+      <select name="currency">
+        {% for currency in currencies %}
+          <option value="{{currency}}">{{currency}}</option>
+        {% endfor %}
+      </select><br />
+      <input type="submit" vaule="Add Currency" />
+    </form>
+  </body>
+</html>
