@@ -18,7 +18,7 @@ def ranking_page(request):
 	eventList = [(e, inDollars(e.worth, e.currency)) for e in eventList]
 	template = loader.get_template('worth_schedule/index.html')
 	cur = [x.name for x in Currency.objects.all()]
-        context = RequestContext(request, { 'tasks': eventList,
+	context = RequestContext(request, { 'tasks': eventList,
 						'currencies': cur })
 	return HttpResponse(template.render(context))
 
