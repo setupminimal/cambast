@@ -13,11 +13,11 @@
     <h1>Cambast</h1>
     {% if tasks %}
       <ol>
-        {% for task in tasks %}
+        {% for task, value in tasks %}
            <li>
                <ul>
                    <li><a href="/finish/{{task.id}}">{{task.name}}</a></li>
-                   <li>Worth: {{task.worth}}</li>
+                   <li>Worth: {{task.worth}} {{task.currency.name}} ({{value}} dollars)</li>
                    <li>Due: {{task.dueDate}}</li>
                    <li>Time Cost: {{task.timeCost}} hours</li>
                </ul>
