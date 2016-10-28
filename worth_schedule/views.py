@@ -3,7 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader, RequestContext
 from worth_schedule.models import *
 from dateutil import parser
-from magic import sortTasks, inDollars
+from worth_schedule.magic import sortTasks, inDollars
 
 # Create your views here.
 
